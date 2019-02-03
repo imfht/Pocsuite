@@ -5,26 +5,27 @@
 Copyright (c) 2014-2016 pocsuite developers (https://seebug.org)
 See the file 'docs/COPYING' for copying permission
 """
-
+import json
 import os
-import time
+import platform
 import shutil
 import tempfile
-import platform
+import time
 from textwrap import dedent
-from pocsuite.lib.core.settings import REPORT_HTMLBASE
-from pocsuite.lib.core.settings import REPORT_TABLEBASE
-from pocsuite.lib.core.data import paths
-from pocsuite.lib.core.exception import PocsuiteSystemException
-from pocsuite.lib.core.exception import PocsuiteMissingPrivileges
+
 from pocsuite.lib.core.common import getUnicode
-from pocsuite.lib.core.common import reIndent
 from pocsuite.lib.core.common import normalizeUnicode
-from pocsuite.lib.core.data import logger
+from pocsuite.lib.core.common import reIndent
 from pocsuite.lib.core.data import conf
 from pocsuite.lib.core.data import kb
+from pocsuite.lib.core.data import logger
+from pocsuite.lib.core.data import paths
 from pocsuite.lib.core.enums import CUSTOM_LOGGING
+from pocsuite.lib.core.exception import PocsuiteMissingPrivileges
+from pocsuite.lib.core.exception import PocsuiteSystemException
 from pocsuite.lib.core.handlejson import execReq
+from pocsuite.lib.core.settings import REPORT_HTMLBASE
+from pocsuite.lib.core.settings import REPORT_TABLEBASE
 from pocsuite.lib.core.threads import runThreads
 from pocsuite.thirdparty.prettytable.prettytable import PrettyTable
 
@@ -72,6 +73,10 @@ def start():
 
     if conf.report:
         _setReport()
+    if conf['json_out']:
+        things = [json.dumps(i) for i in kb.results]
+        for i in things:
+            print i
 
 
 def pocThreads():
@@ -88,14 +93,17 @@ def pocThreads():
         if isinstance(poc, dict):
             pocInfo = poc['pocInfo']
             result = execReq(poc, conf.mode, target)
-            output = (target, pocname, pocInfo["vulID"], pocInfo["appName"], pocInfo["appVersion"], "success" if result else "failed", time.strftime("%Y-%m-%d %X", time.localtime()), str(result.result))
+            output = (target, pocname, pocInfo["vulID"], pocInfo["appName"], pocInfo["appVersion"],
+                      "success" if result else "failed", time.strftime("%Y-%m-%d %X", time.localtime()),
+                      str(result.result))
         else:
             kb.pCollect.add(poc.__module__)
             result = poc.execute(target, headers=conf.httpHeaders, mode=conf.mode, params=conf.params, verbose=False)
             if not result:
                 continue
             result_status = "success" if result.is_success() else "failed"
-            output = (target, pocname, result.vulID, result.appName, result.appVersion, result_status, time.strftime("%Y-%m-%d %X", time.localtime()), str(result.result))
+            output = (target, pocname, result.vulID, result.appName, result.appVersion, result_status,
+                      time.strftime("%Y-%m-%d %X", time.localtime()), str(result.result))
             result.show_result()
 
         kb.results.add(output)

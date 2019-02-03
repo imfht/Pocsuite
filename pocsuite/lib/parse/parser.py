@@ -6,9 +6,8 @@ Copyright (c) 2014-2016 pocsuite developers (https://seebug.org)
 See the file 'docs/COPYING' for copying permission
 """
 
-import os
 from pocsuite.lib.core.data import defaults
-from pocsuite.lib.core.settings import INDENT, USAGE, VERSION
+from pocsuite.lib.core.settings import USAGE, VERSION
 from pocsuite.thirdparty.argparse import argparse
 
 
@@ -117,6 +116,9 @@ def parseCmdOptions():
                    help="Seebug keyword used for search.")
     X.add_argument("--ssv-id", dest="ssvid", action="store", default=None,
                    help="Seebug SSVID number for target PoC.")
+
+    X.add_argument("--json-out", dest="json_out", action="store_true", default=None,
+                   help="output as json")
 
     args = parser.parse_args()
     return args.__dict__

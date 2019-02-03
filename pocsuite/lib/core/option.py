@@ -6,38 +6,38 @@ Copyright (c) 2014-2016 pocsuite developers (https://seebug.org)
 See the file 'docs/COPYING' for copying permission
 """
 
-import re
-import os
-import ast
-import copy
-import random
 import Queue
-import urlparse
+import copy
+import os
+import random
+import re
 import socket
-from pocsuite.lib.core.data import logger
-from pocsuite.lib.core.data import conf
-from pocsuite.lib.core.data import kb
-from pocsuite.lib.core.data import paths
-from pocsuite.lib.core.datatype import AttribDict
-from pocsuite.lib.core.settings import IS_WIN
-from pocsuite.lib.core.enums import CUSTOM_LOGGING
-from pocsuite.lib.core.enums import PROXY_TYPE
-from pocsuite.lib.core.enums import HTTP_HEADER
-from pocsuite.lib.core.settings import HTTP_DEFAULT_HEADER
-from pocsuite.lib.core.common import getFileItems
-from pocsuite.lib.core.common import safeExpandUser
-from pocsuite.lib.core.common import getPublicTypeMembers
-from pocsuite.lib.core.register import registerJsonPoc
-from pocsuite.lib.core.register import registerPyPoc
-from pocsuite.lib.core.exception import PocsuiteFilePathException
-from pocsuite.lib.core.exception import PocsuiteSyntaxException
+import urlparse
+
+from pocsuite.lib.controller.check import isOldVersionPoc
 from pocsuite.lib.controller.check import pocViolation
 from pocsuite.lib.controller.check import requiresCheck
-from pocsuite.lib.controller.check import isOldVersionPoc
 from pocsuite.lib.controller.setpoc import setPoc
-from pocsuite.thirdparty.socks import socks
-from pocsuite.thirdparty.oset.pyoset import oset
+from pocsuite.lib.core.common import getFileItems
+from pocsuite.lib.core.common import getPublicTypeMembers
+from pocsuite.lib.core.common import safeExpandUser
+from pocsuite.lib.core.data import conf
+from pocsuite.lib.core.data import kb
+from pocsuite.lib.core.data import logger
+from pocsuite.lib.core.data import paths
+from pocsuite.lib.core.datatype import AttribDict
+from pocsuite.lib.core.enums import CUSTOM_LOGGING
+from pocsuite.lib.core.enums import HTTP_HEADER
+from pocsuite.lib.core.enums import PROXY_TYPE
+from pocsuite.lib.core.exception import PocsuiteFilePathException
+from pocsuite.lib.core.exception import PocsuiteSyntaxException
+from pocsuite.lib.core.register import registerJsonPoc
+from pocsuite.lib.core.register import registerPyPoc
+from pocsuite.lib.core.settings import HTTP_DEFAULT_HEADER
+from pocsuite.lib.core.settings import IS_WIN
 from pocsuite.thirdparty.colorama.initialise import init as coloramainit
+from pocsuite.thirdparty.oset.pyoset import oset
+from pocsuite.thirdparty.socks import socks
 
 
 def initOptions(inputOptions=AttribDict()):
@@ -67,7 +67,9 @@ def initOptions(inputOptions=AttribDict()):
     conf.delay = float(inputOptions.delay) if inputOptions.delay else 0
     conf.quiet = inputOptions.quiet
     conf.dork = inputOptions.dork if inputOptions.dork else None
+    conf.json_out = inputOptions.json_out if inputOptions.json_out else False
     conf.vulKeyword = inputOptions.vulKeyword if inputOptions.vulKeyword else None
+    conf.json_out = inputOptions.json_out if inputOptions.json_out else False
     if inputOptions.host:
         conf.httpHeaders.update({'Host': inputOptions.host})
     try:
@@ -130,6 +132,7 @@ def init():
 
     setMultipleTarget()
     _setHTTPProxy()
+
 
 # TODO
 
@@ -285,7 +288,8 @@ def _setHTTPProxy():
             pass  # drops into the next check block
 
     if not all((scheme, hasattr(PROXY_TYPE, scheme), hostname, port)):
-        errMsg = "proxy value must be in format '(%s)://address:port'" % "|".join(_[0].lower() for _ in getPublicTypeMembers(PROXY_TYPE))
+        errMsg = "proxy value must be in format '(%s)://address:port'" % "|".join(
+            _[0].lower() for _ in getPublicTypeMembers(PROXY_TYPE))
         raise PocsuiteSyntaxException(errMsg)
 
     if conf.proxyCred:
