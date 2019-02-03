@@ -73,10 +73,10 @@ def start():
 
     if conf.report:
         _setReport()
-    if conf['json_out']:
-        things = [json.dumps(i) for i in kb.results]
-        for i in things:
-            print i
+    if conf.json_out:
+        results = [i for i in kb.results]
+        with open(conf.json_out, 'w+') as f:
+            f.write(json.dumps(results))
 
 
 def pocThreads():

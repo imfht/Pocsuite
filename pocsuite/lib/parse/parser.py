@@ -116,8 +116,7 @@ def parseCmdOptions():
                    help="Seebug keyword used for search.")
     X.add_argument("--ssv-id", dest="ssvid", action="store", default=None,
                    help="Seebug SSVID number for target PoC.")
-
-    X.add_argument("--json-out", dest="json_out", action="store_true", default=None,
+    X.add_argument("--json-out", dest="json_out", action="store", default=None,
                    help="output as json")
 
     args = parser.parse_args()
